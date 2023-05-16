@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>test</title>
+</head>
+<body>
+  
+  <!-- script axios -->
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    const url = 'https://creditmatrix.unicorn555.com/graphql';
+
+    const username = 'partnerapp';
+    const password = 'Rahasia123';
+    const customerID = 'CRD-WA-2007-0439-1670';
+
+    const getToken = async () => {
+      try {
+        const response = await axios.post(url, {
+          query: `
+            mutation TokenAuth($username: String!, $password: String!) {
+              tokenAuth(username: $username, password: $password) {
+                token
+                payload
+                refreshExpiresIn
+              }
+            }
+          `,
+          variables: {
+            username: username,
+            password: password,
+          },
+        });
+
+        return response.data.data.tokenAuth.token;
+      } catch (error) {
+        console.error('Error retrieving token:', error.response.data);
+        throw error;
+      }
+    };
+
+    const fetchData = async () => {
+      try {
+        const token = await getToken();
+
+        const response = await axios.post(
+          url,
+          {
+            query: `
+              query ($customerID: String) {
+                user(customerID: $customerID) {
+                  firstName
+                  lastName
+                  fullName
+                  lastScore {
+                    RNILF04value
+                    RNOLF04value
+                    cbScore
+                    boosterscoreScore {
+                      text
+                      score
+                    }
+                  }
+                  lenderreportuserUser {
+                    lenderReport {
+                      shortNameNew
+                    }
+                    score
+                    weightedScore
+                    rawData
+                  }
+                  additionaldetailUser {
+                    telephoneNumber
+                  }
+                  personalUser {
+                    customerID
+                    title
+                  }
+                  addressUser {
+                    number
+                    street1
+                    postcode
+                    moveIn
+                    number
+                    ptCabs
+                  }
+                  scoreUser {
+                    RNILF04value
+                    RNOLF04value
+                    cbScore
+                    boosterscoreScore {
+                      text
+                      score
+                    }
+                  }
+                  ccjUser {
+                    ccjType
+                    courtName
+                    courtDate
+                  }
+                  aliasUser {
+                    title
+                    surName
+                    middleName
+                    foreName
+                  }
+                  associateUser {
+                    title
+                    surName
+                    middleName
+                    foreName
+                  }
+                  noAccountsUser {
+                    bankAndBuildingSocietyAccountCount
+                    mailOrderCount
+                    communicationsAndUtilityCount
+                    bankAndBuildingSocietyAccountCount
+                  }
+                  accountUser {
+                    accountType
+                    accountNumber
+                    startDate
+                    endDate
+                    isOverdraft
+                    address {
+                      id
+                      postcode
+                      ptCabs
+                      isPrimary
+                    }
+                    historyAccount {
+                      efxPaymentStatus
+                      balance
+                      limit
+                      ageInMonths
+                      cbPaymentStatus
+                    }
+                  }
+                }
+              }
+            `,
+            variables: {
+              customerID: customerID,
+            },
+          },
+          {
+            headers: {
+              Authorization: `JWT ${token}`,
+            },
+          }
+        );
+
+        return response.data.data;
+      } catch (error) {
+        console.error('Error fetching data:', error.response.data);
+        throw error;
+      }
+    };
+
+    // Mengambil dan mencetak data
+    fetchData()
+      .then((data) => {
+        console.log('Data:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  </script>
+</body>
+</html>
